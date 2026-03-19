@@ -30,7 +30,13 @@ _DEFAULT_URL = "sqlite+aiosqlite:///./mcpshield.db"
 
 
 def _get_database_url() -> str:
-    return os.environ.get("DATABASE_URL", _DEFAULT_URL)
+    url = os.environ.get("DATABASE_URL", _DEFAULT_URL)
+    # Railway provides postgresql:// but we need postgresql+asyncpg:// for async
+    if url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    return url
 
 
 def get_engine() -> AsyncEngine:
