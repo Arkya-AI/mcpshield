@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Shield — Dashboard</title>
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-2: #1a1a28;
+            --border: #2a2a3a;
+            --text: #e4e4ef;
+            --text-dim: #8888a0;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── Nav ─────────────────────────────────────────────────── */
+        nav {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 15, 0.92);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+        }
+        nav .inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+        .logo { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.03em; color: var(--text); text-decoration: none; }
+        .logo span { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 7px 12px;
+            border-radius: 7px;
+            transition: all 0.15s;
+        }
+        .nav-links a:hover { color: var(--text); background: var(--surface-2); }
+        .nav-links a.active { color: var(--text); background: var(--surface-2); }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-email {
+            font-size: 0.825rem;
+            color: var(--text-dim);
+            display: none; /* shown after auth loaded */
+        }
+        .btn-sm {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: 7px;
+            padding: 7px 14px;
+            font-size: 0.825rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+        }
+        .btn-sm:hover { border-color: var(--accent); color: var(--text); }
+
+        /* ── Layout ──────────────────────────────────────────────── */
+        .page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px 80px;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+        .page-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 4px;
+        }
+        .page-header p { color: var(--text-dim); font-size: 0.9rem; }
+
+        /* ── Buttons ─────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 22px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover { border-color: var(--accent); background: var(--surface-2); transform: none; }
+
+        /* ── Stats row ───────────────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 24px;
+        }
+        .stat-card-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+        .stat-card-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-card-value .unit {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-left: 4px;
+        }
+        .stat-card-sub {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* Usage bar */
+        .usage-bar {
+            height: 6px;
+            background: var(--bg);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .usage-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: var(--accent);
+            transition: width 0.5s ease;
+        }
+        .usage-bar-fill.warn { background: var(--yellow); }
+        .usage-bar-fill.danger { background: var(--red); }
+
+        /* Plan badge */
+        .plan-badge {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            padding: 3px 9px;
+            border-radius: 999px;
+        }
+        .plan-free { background: rgba(136,136,160,0.15); color: var(--text-dim); border: 1px solid var(--border); }
+        .plan-starter { background: rgba(99,102,241,0.15); color: var(--accent); border: 1px solid rgba(99,102,241,0.35); }
+        .plan-team { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+        .plan-enterprise { background: rgba(234,179,8,0.12); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+
+        /* Trend indicator */
+        .trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .trend.up { color: var(--green); }
+        .trend.down { color: var(--red); }
+        .trend.neutral { color: var(--text-dim); }
+
+        /* ── Section card ────────────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .card-header p {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        /* ── Scanner form ────────────────────────────────────────── */
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab:hover { color: var(--text); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 16px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: var(--accent); }
+        textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+        .url-input-group { display: flex; gap: 12px; }
+        .url-input-group input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            padding: 13px 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .url-input-group input:focus { border-color: var(--accent); }
+
+        /* Spinner */
+        .spinner {
+            width: 17px; height: 17px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: none;
+        }
+        .spinner.show { display: inline-block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Scan results */
+        #scan-results {
+            display: none;
+            margin-top: 28px;
+            border-top: 1px solid var(--border);
+            padding-top: 28px;
+        }
+        .grade-display {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .grade-badge {
+            width: 72px; height: 72px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        .grade-A, .grade-B { background: rgba(34,197,94,0.15); color: var(--green); border: 2px solid var(--green); }
+        .grade-C { background: rgba(234,179,8,0.15); color: var(--yellow); border: 2px solid var(--yellow); }
+        .grade-D { background: rgba(249,115,22,0.15); color: var(--orange); border: 2px solid var(--orange); }
+        .grade-F { background: rgba(239,68,68,0.15); color: var(--red); border: 2px solid var(--red); }
+        .grade-info h3 { font-size: 1rem; }
+        .grade-info p { color: var(--text-dim); font-size: 0.875rem; }
+
+        .finding {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        .finding-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .severity-tag {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+        .sev-critical { background: rgba(239,68,68,0.2); color: var(--red); }
+        .sev-high { background: rgba(249,115,22,0.2); color: var(--orange); }
+        .sev-medium { background: rgba(234,179,8,0.2); color: var(--yellow); }
+        .sev-low { background: rgba(96,165,250,0.2); color: #60a5fa; }
+        .sev-info { background: rgba(136,136,160,0.2); color: var(--text-dim); }
+        .finding-title { font-weight: 600; font-size: 0.875rem; }
+        .finding-desc { color: var(--text-dim); font-size: 0.825rem; margin-bottom: 8px; }
+        .finding-fix {
+            font-size: 0.78rem;
+            color: var(--green);
+            padding: 7px 11px;
+            background: rgba(34,197,94,0.08);
+            border-radius: 6px;
+        }
+
+        .scan-saved-note {
+            display: none;
+            font-size: 0.82rem;
+            color: var(--green);
+            margin-top: 12px;
+            padding: 8px 12px;
+            background: rgba(34,197,94,0.08);
+            border-radius: 6px;
+        }
+
+        /* ── Scans table ─────────────────────────────────────────── */
+        .table-wrap {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        thead th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface-2); }
+        tbody td {
+            padding: 13px 14px;
+            vertical-align: middle;
+        }
+        .td-date { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; }
+        .td-action { text-align: right; }
+        .td-action a {
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .td-action a:hover { text-decoration: underline; }
+
+        /* Grade pill */
+        .grade-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+        .gp-A, .gp-B { background: rgba(34,197,94,0.15); color: var(--green); }
+        .gp-C { background: rgba(234,179,8,0.15); color: var(--yellow); }
+        .gp-D { background: rgba(249,115,22,0.15); color: var(--orange); }
+        .gp-F { background: rgba(239,68,68,0.15); color: var(--red); }
+
+        /* Expandable row details */
+        .row-detail {
+            display: none;
+            background: var(--bg);
+        }
+        .row-detail.open { display: table-row; }
+        .row-detail td {
+            padding: 16px 14px 20px;
+        }
+        .detail-findings {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            margin-top: 18px;
+        }
+        .page-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px; height: 32px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 0.825rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .page-btn:hover, .page-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(99,102,241,0.08);
+        }
+        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .page-info { font-size: 0.8rem; color: var(--text-dim); margin-right: 8px; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .empty-state .icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        .empty-state h3 { font-size: 1rem; margin-bottom: 6px; }
+        .empty-state p { color: var(--text-dim); font-size: 0.875rem; }
+
+        /* ── Billing card ────────────────────────────────────────── */
+        .billing-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .billing-info h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+        .billing-info .price {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+            margin-bottom: 14px;
+        }
+        .billing-features {
+            list-style: none;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        .billing-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .billing-features li::before {
+            content: '✓';
+            color: var(--green);
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .billing-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        /* ── Loading skeleton ────────────────────────────────────── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 6px;
+        }
+        @keyframes shimmer { to { background-position: -200% 0; } }
+        .skel-line { height: 14px; margin-bottom: 8px; }
+        .skel-short { width: 40%; }
+        .skel-medium { width: 65%; }
+        .skel-full { width: 100%; }
+
+        /* ── Global loading / error ──────────────────────────────── */
+        #page-loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            transition: opacity 0.3s;
+        }
+        #page-loader.hidden { opacity: 0; pointer-events: none; }
+        .loader-ring {
+            width: 40px; height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* ── Responsive ──────────────────────────────────────────── */
+        @media (max-width: 640px) {
+            .card { padding: 20px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .url-input-group { flex-direction: column; }
+            .grade-display { flex-direction: column; text-align: center; }
+            .billing-row { flex-direction: column; }
+            .billing-actions { align-items: flex-start; }
+            .nav-links a { padding: 7px 8px; }
+        }
+        @media (max-width: 420px) {
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Full-page loader while auth check happens -->
+    <div id="page-loader"><div class="loader-ring"></div></div>
+
+    <nav>
+        <div class="inner">
+            <a href="/" class="logo">MCP<span>Shield</span></a>
+            <div class="nav-links">
+                <a href="/dashboard" class="active">Dashboard</a>
+                <a href="/scan-history">Scan History</a>
+                <a href="/billing">Billing</a>
+                <a href="/docs" target="_blank">Docs</a>
+            </div>
+            <div class="nav-right">
+                <span class="user-email" id="user-email"></span>
+                <button class="btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page">
+        <div class="page-header">
+            <h1>Dashboard</h1>
+            <p id="greeting">Welcome back.</p>
+        </div>
+
+        <!-- ── Quick Stats ── -->
+        <div class="stats-grid" id="stats-grid">
+            <!-- Plan card -->
+            <div class="stat-card">
+                <div class="stat-card-label">Current Plan</div>
+                <div class="stat-card-value" id="stat-plan">
+                    <span class="skeleton skel-line skel-short" style="display:block;height:28px;"></span>
+                </div>
+                <div class="stat-card-sub" style="margin-top:10px;">
+                    <a href="#billing" class="btn btn-outline" style="padding:7px 14px;font-size:0.8rem;" id="upgrade-btn">Upgrade Plan</a>
+                </div>
+            </div>
+
+            <!-- Scans today -->
+            <div class="stat-card">
+                <div class="stat-card-label">Scans Today</div>
+                <div class="stat-card-value">
+                    <span id="stat-today">—</span>
+                    <span class="unit" id="stat-today-limit"></span>
+                </div>
+                <div class="usage-bar" id="today-bar-wrap">
+                    <div class="usage-bar-fill" id="today-bar" style="width:0%"></div>
+                </div>
+                <div class="stat-card-sub" style="margin-top:8px;" id="today-bar-label">&nbsp;</div>
+            </div>
+
+            <!-- Total scans -->
+            <div class="stat-card">
+                <div class="stat-card-label">Total Scans</div>
+                <div class="stat-card-value" id="stat-total">—</div>
+                <div class="stat-card-sub">all time</div>
+            </div>
+
+            <!-- Security score trend -->
+            <div class="stat-card">
+                <div class="stat-card-label">Score Trend</div>
+                <div class="stat-card-value" id="stat-score">—</div>
+                <div class="stat-card-sub" id="stat-score-sub">last 5 scans average</div>
+            </div>
+        </div>
+
+        <!-- ── Quick Scan ── -->
+        <div class="card" id="scanner">
+            <div class="card-header">
+                <div>
+                    <h2>Quick Scan</h2>
+                    <p>Results are saved to your scan history automatically.</p>
+                </div>
+            </div>
+
+            <div class="tab-bar">
+                <div class="tab active" data-tab="config">Paste Config</div>
+                <div class="tab" data-tab="url">Scan URL</div>
+            </div>
+
+            <div id="tab-config" class="tab-content active">
+                <textarea id="config-input" placeholder='{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "my-mcp-server"],
+      "env": {
+        "API_KEY": "..."
+      }
+    }
+  }
+}'></textarea>
+                <button class="btn" onclick="scanConfig()" style="margin-top:14px;">
+                    <span class="spinner" id="spinner-config"></span>
+                    Scan Configuration
+                </button>
+            </div>
+
+            <div id="tab-url" class="tab-content">
+                <div class="url-input-group">
+                    <input type="url" id="url-input" placeholder="https://your-mcp-server.com/mcp">
+                </div>
+                <button class="btn" onclick="scanUrl()" style="margin-top:14px;">
+                    <span class="spinner" id="spinner-url"></span>
+                    Scan Server
+                </button>
+            </div>
+
+            <div id="scan-results"></div>
+            <div class="scan-saved-note" id="scan-saved-note">&#x2713; Scan saved to your history.</div>
+        </div>
+
+        <!-- ── Recent Scans ── -->
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2>Recent Scans</h2>
+                    <p>Click any row to expand findings.</p>
+                </div>
+                <a href="/scan-history" class="btn-sm">View all</a>
+            </div>
+
+            <div id="scans-container">
+                <!-- Populated by JS -->
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Servers</th>
+                                <th>Worst Grade</th>
+                                <th>Findings</th>
+                                <th style="text-align:right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scans-tbody">
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state" id="scans-loading">
+                                        <div class="skeleton skel-line skel-full" style="margin-bottom:10px;"></div>
+                                        <div class="skeleton skel-line skel-medium" style="margin-bottom:10px;"></div>
+                                        <div class="skeleton skel-line skel-full"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="pagination" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- ── Plan & Billing ── -->
+        <div class="card" id="billing">
+            <div class="card-header">
+                <div>
+                    <h2>Plan &amp; Billing</h2>
+                    <p>Manage your subscription and payment details.</p>
+                </div>
+            </div>
+
+            <div class="billing-row" id="billing-row">
+                <div class="billing-info">
+                    <h3 id="billing-plan-name">Loading…</h3>
+                    <div class="price" id="billing-plan-price">&nbsp;</div>
+                    <ul class="billing-features" id="billing-features"></ul>
+                </div>
+                <div class="billing-actions" id="billing-actions">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    /* ── Config ─────────────────────────────────────────────── */
+    const API_BASE = window.location.origin;
+    const ITEMS_PER_PAGE = 10;
+
+    let authToken = null;
+    let currentUser = null;
+    let allScans = [];
+    let currentPage = 1;
+
+    /* ── Plan definitions ───────────────────────────────────── */
+    const PLANS = {
+        free: {
+            name: 'Free',
+            price: '$0 / month',
+            dailyLimit: 5,
+            features: ['5 scans per day', 'Basic security checks', 'Scan history (7 days)'],
+            badgeClass: 'plan-free',
+        },
+        starter: {
+            name: 'Starter',
+            price: '$12 / month',
+            dailyLimit: 100,
+            features: ['100 scans per day', 'All security checks', 'Scan history (90 days)', 'Email alerts'],
+            badgeClass: 'plan-starter',
+        },
+        team: {
+            name: 'Team',
+            price: '$49 / month',
+            dailyLimit: 1000,
+            features: ['1,000 scans per day', 'All security checks', 'Unlimited history', 'Slack alerts', 'Team members (5)'],
+            badgeClass: 'plan-team',
+        },
+        enterprise: {
+            name: 'Enterprise',
+            price: 'Custom',
+            dailyLimit: null,
+            features: ['Unlimited scans', 'Custom checks', 'Dedicated support', 'SSO / SAML', 'SLA guarantee'],
+            badgeClass: 'plan-enterprise',
+        },
+    };
+
+    /* ── Auth ───────────────────────────────────────────────── */
+    function getAuthHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken,
+        };
+    }
+
+    function logout() {
+        localStorage.removeItem('mcpshield_token');
+        localStorage.removeItem('mcpshield_user');
+        window.location.href = '/';
+    }
+
+    /* ── Initialise ─────────────────────────────────────────── */
+    (async function init() {
+        authToken = localStorage.getItem('mcpshield_token');
+        if (!authToken) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const userRaw = localStorage.getItem('mcpshield_user');
+        if (userRaw) {
+            try { currentUser = JSON.parse(userRaw); } catch {}
+        }
+
+        // Show basic info immediately from local cache
+        applyUserInfo(currentUser);
+
+        // Fetch fresh dashboard data
+        try {
+            const res = await fetch(API_BASE + '/api/v1/dashboard', {
+                headers: getAuthHeaders(),
+            });
+            if (res.status === 401) { logout(); return; }
+
+            if (res.ok) {
+                const data = await res.json();
+                currentUser = data.user || currentUser;
+                localStorage.setItem('mcpshield_user', JSON.stringify(currentUser));
+                applyUserInfo(currentUser);
+                applyStats(data.stats || {});
+                applyBilling(data.plan || 'free');
+                renderScans(data.recent_scans || []);
+            } else {
+                // Fallback: try to render from cached user
+                applyBilling((currentUser && currentUser.plan) || 'free');
+                await loadScans();
+            }
+        } catch {
+            // Network error — render from cache
+            applyBilling((currentUser && currentUser.plan) || 'free');
+            renderScans([]);
+        }
+
+        hideLoader();
+    })();
+
+    function hideLoader() {
+        const loader = document.getElementById('page-loader');
+        loader.classList.add('hidden');
+        setTimeout(() => loader.remove(), 400);
+    }
+
+    function applyUserInfo(user) {
+        if (!user) return;
+        const emailEl = document.getElementById('user-email');
+        emailEl.textContent = user.email || '';
+        emailEl.style.display = 'block';
+
+        const name = user.name ? user.name.split(' ')[0] : (user.email ? user.email.split('@')[0] : '');
+        document.getElementById('greeting').textContent = 'Welcome back' + (name ? ', ' + name : '') + '.';
+    }
+
+    function applyStats(stats) {
+        const plan = PLANS[stats.plan] || PLANS.free;
+        const planEl = document.getElementById('stat-plan');
+        planEl.innerHTML = `<span class="plan-badge ${plan.badgeClass}">${plan.name}</span>`;
+
+        const today = stats.scans_today ?? 0;
+        const limit = plan.dailyLimit;
+        document.getElementById('stat-today').textContent = today;
+        document.getElementById('stat-today-limit').textContent = limit ? '/ ' + limit : '';
+
+        if (limit) {
+            const pct = Math.min(100, Math.round(today / limit * 100));
+            const bar = document.getElementById('today-bar');
+            bar.style.width = pct + '%';
+            bar.classList.toggle('warn', pct >= 70 && pct < 90);
+            bar.classList.toggle('danger', pct >= 90);
+            document.getElementById('today-bar-label').textContent = pct + '% of daily limit used';
+        } else {
+            document.getElementById('today-bar-wrap').style.display = 'none';
+            document.getElementById('today-bar-label').textContent = 'Unlimited';
+        }
+
+        document.getElementById('stat-total').textContent = stats.total_scans ?? '—';
+
+        const avg = stats.score_avg;
+        if (avg != null) {
+            document.getElementById('stat-score').textContent = Math.round(avg) + '/100';
+            const delta = stats.score_delta;
+            if (delta != null && delta !== 0) {
+                const dir = delta > 0 ? 'up' : 'down';
+                const arrow = delta > 0 ? '&#8593;' : '&#8595;';
+                document.getElementById('stat-score-sub').innerHTML =
+                    `<span class="trend ${dir}">${arrow} ${Math.abs(delta)} pts vs last week</span>`;
+            }
+        }
+
+        // Upgrade button visibility
+        if (stats.plan === 'enterprise') {
+            document.getElementById('upgrade-btn').style.display = 'none';
+        }
+    }
+
+    function applyBilling(planKey) {
+        const plan = PLANS[planKey] || PLANS.free;
+
+        document.getElementById('billing-plan-name').innerHTML =
+            `${plan.name} <span class="plan-badge ${plan.badgeClass}" style="margin-left:8px;vertical-align:middle;">${plan.name}</span>`;
+        document.getElementById('billing-plan-price').textContent = plan.price;
+
+        const featList = document.getElementById('billing-features');
+        featList.innerHTML = plan.features.map(f => `<li>${f}</li>`).join('');
+
+        const actionsEl = document.getElementById('billing-actions');
+        const isFree = planKey === 'free';
+        actionsEl.innerHTML = `
+            ${!isFree ? `<a href="/billing/portal" class="btn btn-outline">Manage Billing</a>` : ''}
+            ${planKey !== 'enterprise' ? `<a href="/billing/upgrade" class="btn">Upgrade Plan</a>` : ''}
+            ${planKey === 'enterprise' ? `<a href="mailto:enterprise@timolabs.dev" class="btn btn-outline">Contact Sales</a>` : ''}
+        `;
+    }
+
+    /* ── Tab switching ──────────────────────────────────────── */
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const bar = tab.closest('.tab-bar');
+            bar.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const card = bar.closest('.card') || bar.parentElement;
+            card.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            const target = card.querySelector('#tab-' + tab.dataset.tab);
+            if (target) target.classList.add('active');
+        });
+    });
+
+    /* ── Scanner ────────────────────────────────────────────── */
+    async function scanConfig() {
+        const input = document.getElementById('config-input').value.trim();
+        if (!input) return;
+        let config;
+        try { config = JSON.parse(input); }
+        catch { showScanError('Invalid JSON. Please paste a valid MCP configuration.'); return; }
+
+        await doScan({ config });
+    }
+
+    async function scanUrl() {
+        const url = document.getElementById('url-input').value.trim();
+        if (!url) return;
+        await doScan({ url });
+    }
+
+    async function doScan(body) {
+        const isConfig = !!body.config;
+        const spinnerId = isConfig ? 'spinner-config' : 'spinner-url';
+        const endpoint = isConfig ? '/api/v1/scan' : '/api/v1/scan-url';
+
+        const spinner = document.getElementById(spinnerId);
+        spinner.classList.add('show');
+        document.getElementById('scan-saved-note').style.display = 'none';
+
+        try {
+            const res = await fetch(API_BASE + endpoint, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(body),
+            });
+            if (res.status === 401) { logout(); return; }
+            const data = await res.json();
+            renderScanResults(data);
+            if (res.ok) {
+                document.getElementById('scan-saved-note').style.display = 'block';
+                // Reload recent scans
+                await loadScans();
+            }
+        } catch (err) {
+            showScanError('Scan failed: ' + err.message);
+        } finally {
+            spinner.classList.remove('show');
+        }
+    }
+
+    function showScanError(msg) {
+        const c = document.getElementById('scan-results');
+        c.style.display = 'block';
+        c.innerHTML = `<p style="color:var(--red);font-size:0.875rem;">${msg}</p>`;
+    }
+
+    function renderScanResults(data) {
+        const container = document.getElementById('scan-results');
+        container.style.display = 'block';
+
+        if (!data.results || data.results.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-dim);font-size:0.875rem;">No servers found to scan.</p>';
+            return;
+        }
+
+        const sevOrder = ['critical', 'high', 'medium', 'low', 'info'];
+        let html = '';
+
+        for (const result of data.results) {
+            const gc = 'grade-' + result.grade;
+            html += `
+                <div class="grade-display">
+                    <div class="grade-badge ${gc}">${result.grade}</div>
+                    <div class="grade-info">
+                        <h3>${escHtml(result.server_name)}</h3>
+                        <p>Score: ${result.score}/100 &middot; ${result.findings.length} finding(s)</p>
+                    </div>
+                </div>`;
+
+            if (result.findings.length === 0) {
+                html += '<div class="finding"><p style="color:var(--green);">No security issues found.</p></div>';
+                continue;
+            }
+
+            const sorted = [...result.findings].sort(
+                (a, b) => sevOrder.indexOf(a.severity) - sevOrder.indexOf(b.severity)
+            );
+            for (const f of sorted) {
+                html += `
+                    <div class="finding">
+                        <div class="finding-header">
+                            <span class="severity-tag sev-${f.severity}">${f.severity}</span>
+                            <span class="finding-title">${escHtml(f.title)}</span>
+                        </div>
+                        <p class="finding-desc">${escHtml(f.description)}</p>
+                        <div class="finding-fix">Fix: ${escHtml(f.remediation)}</div>
+                    </div>`;
+            }
+        }
+
+        container.innerHTML = html;
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* ── Scan history ───────────────────────────────────────── */
+    async function loadScans() {
+        try {
+            const res = await fetch(API_BASE + '/api/v1/scans?limit=50', {
+                headers: getAuthHeaders(),
+            });
+            if (res.status === 401) { logout(); return; }
+            if (res.ok) {
+                const data = await res.json();
+                allScans = data.scans || [];
+                currentPage = 1;
+                renderScans(allScans);
+            }
+        } catch {
+            // Leave existing state
+        }
+    }
+
+    function renderScans(scans) {
+        const tbody = document.getElementById('scans-tbody');
+        const paginationEl = document.getElementById('pagination');
+
+        if (!scans || scans.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="5">
+                    <div class="empty-state">
+                        <div class="icon">&#x1f50d;</div>
+                        <h3>No scans yet</h3>
+                        <p>Run your first scan above to see results here.</p>
+                    </div>
+                </td></tr>`;
+            paginationEl.style.display = 'none';
+            return;
+        }
+
+        const totalPages = Math.ceil(scans.length / ITEMS_PER_PAGE);
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const pageScans = scans.slice(start, start + ITEMS_PER_PAGE);
+
+        let html = '';
+        for (let i = 0; i < pageScans.length; i++) {
+            const scan = pageScans[i];
+            const rowId = 'row-' + start + i;
+            const detailId = 'detail-' + start + i;
+            const grade = scan.worst_grade || '?';
+            const gpClass = 'gp-' + (grade.match(/^[A-F]/) ? grade[0] : 'F');
+            const dateStr = formatDate(scan.created_at);
+            const findings = scan.total_findings ?? 0;
+            const servers = scan.server_count ?? 1;
+
+            html += `
+                <tr id="${rowId}" onclick="toggleRow('${rowId}', '${detailId}')">
+                    <td class="td-date">${dateStr}</td>
+                    <td>${servers} server${servers !== 1 ? 's' : ''}</td>
+                    <td><span class="grade-pill ${gpClass}">${grade}</span></td>
+                    <td>${findings} finding${findings !== 1 ? 's' : ''}</td>
+                    <td class="td-action"><a href="#" onclick="viewScan('${scan.id}', event)">View details &#8250;</a></td>
+                </tr>
+                <tr class="row-detail" id="${detailId}">
+                    <td colspan="5">
+                        ${renderScanDetailInline(scan)}
+                    </td>
+                </tr>`;
+        }
+
+        tbody.innerHTML = html;
+
+        // Pagination
+        if (totalPages <= 1) {
+            paginationEl.style.display = 'none';
+        } else {
+            paginationEl.style.display = 'flex';
+            paginationEl.innerHTML = buildPagination(currentPage, totalPages);
+        }
+    }
+
+    function renderScanDetailInline(scan) {
+        if (!scan.results || scan.results.length === 0) {
+            return '<p style="color:var(--text-dim);font-size:0.85rem;">No detail available.</p>';
+        }
+
+        const sevOrder = ['critical', 'high', 'medium', 'low', 'info'];
+        let html = '<div class="detail-findings">';
+
+        for (const result of scan.results) {
+            if (!result.findings || result.findings.length === 0) continue;
+            const sorted = [...result.findings].sort(
+                (a, b) => sevOrder.indexOf(a.severity) - sevOrder.indexOf(b.severity)
+            );
+            for (const f of sorted.slice(0, 4)) { // show top 4 per server inline
+                html += `
+                    <div class="finding">
+                        <div class="finding-header">
+                            <span class="severity-tag sev-${f.severity}">${f.severity}</span>
+                            <span class="finding-title">${escHtml(f.title)}</span>
+                        </div>
+                        <p class="finding-desc">${escHtml(f.description)}</p>
+                        <div class="finding-fix">Fix: ${escHtml(f.remediation)}</div>
+                    </div>`;
+            }
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function toggleRow(rowId, detailId) {
+        const detail = document.getElementById(detailId);
+        if (!detail) return;
+        detail.classList.toggle('open');
+    }
+
+    function viewScan(scanId, e) {
+        e.stopPropagation();
+        window.location.href = '/scan/' + scanId;
+    }
+
+    function buildPagination(current, total) {
+        const pageInfo = `<span class="page-info">Page ${current} of ${total}</span>`;
+        let html = pageInfo;
+
+        html += `<button class="page-btn" onclick="goPage(${current - 1})" ${current === 1 ? 'disabled' : ''}>&#8249;</button>`;
+
+        for (let p = 1; p <= total; p++) {
+            if (total > 7 && Math.abs(p - current) > 2 && p !== 1 && p !== total) {
+                if (p === 2 || p === total - 1) html += `<span class="page-btn" style="cursor:default;border:none;">…</span>`;
+                continue;
+            }
+            html += `<button class="page-btn ${p === current ? 'active' : ''}" onclick="goPage(${p})">${p}</button>`;
+        }
+
+        html += `<button class="page-btn" onclick="goPage(${current + 1})" ${current === total ? 'disabled' : ''}>&#8250;</button>`;
+        return html;
+    }
+
+    function goPage(p) {
+        currentPage = p;
+        renderScans(allScans);
+    }
+
+    /* ── Helpers ────────────────────────────────────────────── */
+    function formatDate(iso) {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        if (isNaN(d)) return iso;
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+             + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+    </script>
+</body>
+</html>

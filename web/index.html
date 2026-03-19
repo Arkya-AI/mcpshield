@@ -50,6 +50,33 @@
         .logo span { color: var(--accent); }
         nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; margin-left: 24px; transition: color 0.2s; }
         nav a:hover { color: var(--text); }
+        .nav-auth { display: flex; align-items: center; gap: 0; }
+        .nav-login {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-left: 24px;
+            transition: color 0.2s;
+        }
+        .nav-login:hover { color: var(--text); }
+        .nav-dashboard {
+            display: none; /* shown when logged in */
+            color: var(--accent) !important;
+            font-weight: 600;
+        }
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            background: var(--accent);
+            color: white !important;
+            border-radius: 7px;
+            padding: 7px 16px;
+            font-size: 0.85rem !important;
+            font-weight: 600;
+            margin-left: 16px !important;
+            transition: background 0.2s !important;
+        }
+        .nav-cta:hover { background: #4f46e5; color: white !important; }
 
         /* Hero */
         .hero {
@@ -372,11 +399,13 @@
     <nav>
         <div class="container">
             <div class="logo">MCP<span>Shield</span></div>
-            <div>
+            <div class="nav-auth">
                 <a href="#scanner">Scanner</a>
                 <a href="#features">Features</a>
                 <a href="https://github.com/ArkYa-AI/mcpshield" target="_blank">GitHub</a>
                 <a href="/docs" target="_blank">API Docs</a>
+                <a href="/login" class="nav-login" id="nav-login">Login</a>
+                <a href="/dashboard" class="nav-login nav-dashboard" id="nav-dashboard">Dashboard</a>
             </div>
         </div>
     </nav>
@@ -631,6 +660,15 @@
             document.getElementById('waitlist-form').style.display = 'none';
             document.getElementById('waitlist-success').style.display = 'block';
         }
+
+        // Show Dashboard link instead of Login when user is already authenticated
+        (function() {
+            const token = localStorage.getItem('mcpshield_token');
+            if (token) {
+                document.getElementById('nav-login').style.display = 'none';
+                document.getElementById('nav-dashboard').style.display = 'inline';
+            }
+        })();
     </script>
 </body>
 </html>

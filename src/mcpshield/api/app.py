@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,18 @@ from .schemas import (
     FindingCountsSchema,
 )
 
+
+# ---------------------------------------------------------------------------
+# Lifespan — initialise database on startup
+# ---------------------------------------------------------------------------
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from mcpshield.db.engine import init_db
+    await init_db()
+    yield
+
+
 # ---------------------------------------------------------------------------
 # Application factory
 # ---------------------------------------------------------------------------
@@ -41,6 +54,7 @@ app = FastAPI(
     version=__version__,
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
@@ -55,6 +69,16 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------------------------
+# Include routers — auth, billing
+# ---------------------------------------------------------------------------
+
+from mcpshield.auth.router import router as auth_router
+from mcpshield.billing.router import router as billing_router
+
+app.include_router(auth_router)
+app.include_router(billing_router)
 
 # ---------------------------------------------------------------------------
 # Simple in-memory rate limiter
@@ -237,6 +261,22 @@ async def root():
     if index.exists():
         return FileResponse(index, media_type="text/html")
     return RedirectResponse(url="/docs", status_code=status.HTTP_302_FOUND)
+
+
+@app.get("/login", include_in_schema=False)
+async def login_page():
+    page = _WEB_DIR / "login.html"
+    if page.exists():
+        return FileResponse(page, media_type="text/html")
+    return RedirectResponse(url="/docs")
+
+
+@app.get("/dashboard", include_in_schema=False)
+async def dashboard_page():
+    page = _WEB_DIR / "dashboard.html"
+    if page.exists():
+        return FileResponse(page, media_type="text/html")
+    return RedirectResponse(url="/login")
 
 
 @app.get(
