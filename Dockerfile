@@ -14,7 +14,7 @@ COPY web/ web/
 RUN uv pip install --system --no-cache .
 
 # Expose port
-EXPOSE 8000
+EXPOSE ${PORT:-8000}
 
-# Run the API server
-CMD ["uvicorn", "mcpshield.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the API server — use shell form so $PORT is expanded
+CMD uvicorn mcpshield.api.app:app --host 0.0.0.0 --port ${PORT:-8000}
