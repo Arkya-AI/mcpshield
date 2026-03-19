@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Shield — Security Scanner for MCP Servers</title>
+    <meta name="description" content="Scan your MCP server configurations for security vulnerabilities. Free instant audit with detailed remediation guidance.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-2: #1a1a28;
+            --border: #2a2a3a;
+            --text: #e4e4ef;
+            --text-dim: #8888a0;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --orange: #f97316;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+        /* Nav */
+        nav {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 800; font-size: 1.2rem; letter-spacing: -0.03em; }
+        .logo span { color: var(--accent); }
+        nav a { color: var(--text-dim); text-decoration: none; font-size: 0.9rem; margin-left: 24px; transition: color 0.2s; }
+        nav a:hover { color: var(--text); }
+
+        /* Hero */
+        .hero {
+            padding: 100px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .badge {
+            display: inline-block;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 6px 16px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        h1 .highlight { color: var(--accent); }
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-dim);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        /* Scanner Form */
+        .scanner-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 80px;
+            position: relative;
+        }
+        .scanner-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+        .scanner-section > p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab:hover { color: var(--text); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        textarea {
+            width: 100%;
+            min-height: 240px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            padding: 16px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: var(--accent); }
+        textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+        .url-input-group { display: flex; gap: 12px; }
+        .url-input-group input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            padding: 14px 16px;
+            outline: none;
+        }
+        .url-input-group input:focus { border-color: var(--accent); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+        .btn:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+        .btn-secondary:hover { border-color: var(--accent); background: var(--surface-2); }
+
+        /* Results */
+        #results {
+            display: none;
+            margin-top: 32px;
+            border-top: 1px solid var(--border);
+            padding-top: 32px;
+        }
+        .grade-display {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .grade-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+        .grade-A, .grade-B { background: rgba(34, 197, 94, 0.15); color: var(--green); border: 2px solid var(--green); }
+        .grade-C { background: rgba(234, 179, 8, 0.15); color: var(--yellow); border: 2px solid var(--yellow); }
+        .grade-D { background: rgba(249, 115, 22, 0.15); color: var(--orange); border: 2px solid var(--orange); }
+        .grade-F { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 2px solid var(--red); }
+
+        .grade-info h3 { font-size: 1.1rem; }
+        .grade-info p { color: var(--text-dim); font-size: 0.9rem; }
+
+        .finding {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .finding-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .severity-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+        }
+        .sev-critical { background: rgba(239,68,68,0.2); color: var(--red); }
+        .sev-high { background: rgba(249,115,22,0.2); color: var(--orange); }
+        .sev-medium { background: rgba(234,179,8,0.2); color: var(--yellow); }
+        .sev-low { background: rgba(96,165,250,0.2); color: #60a5fa; }
+        .sev-info { background: rgba(136,136,160,0.2); color: var(--text-dim); }
+        .finding-title { font-weight: 600; font-size: 0.9rem; }
+        .finding-desc { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 8px; }
+        .finding-fix {
+            font-size: 0.8rem;
+            color: var(--green);
+            padding: 8px 12px;
+            background: rgba(34, 197, 94, 0.08);
+            border-radius: 6px;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            padding: 60px 0;
+        }
+        .stat {
+            text-align: center;
+            padding: 24px;
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -0.03em;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        /* Features */
+        .features {
+            padding: 60px 0;
+        }
+        .features h2 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 48px;
+            letter-spacing: -0.03em;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .feature {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+        }
+        .feature h3 { font-size: 1rem; margin-bottom: 8px; }
+        .feature p { color: var(--text-dim); font-size: 0.9rem; }
+        .feature-icon {
+            width: 40px; height: 40px;
+            background: var(--surface-2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+        }
+
+        /* CTA */
+        .cta {
+            text-align: center;
+            padding: 80px 0;
+            border-top: 1px solid var(--border);
+        }
+        .cta h2 { font-size: 2rem; margin-bottom: 12px; letter-spacing: -0.03em; }
+        .cta p { color: var(--text-dim); margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+        /* Email capture */
+        .email-form {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .email-form input {
+            flex: 1;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 14px 16px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .email-form input:focus { border-color: var(--accent); }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.8rem;
+        }
+        footer a { color: var(--text-dim); text-decoration: none; }
+        footer a:hover { color: var(--accent); }
+
+        /* Loading */
+        .spinner {
+            width: 20px; height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 640px) {
+            .scanner-section { padding: 24px; }
+            .url-input-group { flex-direction: column; }
+            .email-form { flex-direction: column; }
+            .grade-display { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <div class="logo">MCP<span>Shield</span></div>
+            <div>
+                <a href="#scanner">Scanner</a>
+                <a href="#features">Features</a>
+                <a href="https://github.com/ArkYa-AI/mcpshield" target="_blank">GitHub</a>
+                <a href="/docs" target="_blank">API Docs</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="container">
+            <div class="badge">38.7% of MCP servers have zero authentication</div>
+            <h1>Is your MCP setup<br><span class="highlight">production ready?</span></h1>
+            <p>Scan your MCP server configurations for security vulnerabilities, misconfigurations, and known CVEs. Free instant audit with actionable fixes.</p>
+            <a href="#scanner" class="btn">Scan Now — Free</a>
+        </div>
+    </section>
+
+    <section id="scanner" class="container">
+        <div class="scanner-section">
+            <h2>Security Scanner</h2>
+            <p>Paste your MCP config or enter a server URL to get an instant security grade.</p>
+
+            <div class="tab-bar">
+                <div class="tab active" data-tab="config">Paste Config</div>
+                <div class="tab" data-tab="url">Scan URL</div>
+            </div>
+
+            <div id="tab-config" class="tab-content active">
+                <textarea id="config-input" placeholder='{
+  "mcpServers": {
+    "my-server": {
+      "command": "npx",
+      "args": ["-y", "my-mcp-server"],
+      "env": {
+        "API_KEY": "..."
+      }
+    }
+  }
+}'></textarea>
+                <button class="btn" onclick="scanConfig()">
+                    <span class="spinner" id="spinner-config"></span>
+                    Scan Configuration
+                </button>
+            </div>
+
+            <div id="tab-url" class="tab-content">
+                <div class="url-input-group">
+                    <input type="url" id="url-input" placeholder="https://your-mcp-server.com/mcp">
+                </div>
+                <button class="btn" onclick="scanUrl()">
+                    <span class="spinner" id="spinner-url"></span>
+                    Scan Server
+                </button>
+            </div>
+
+            <div id="results"></div>
+        </div>
+    </section>
+
+    <section class="container">
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Security Checks</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Known CVEs Tracked</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">A-F</div>
+                <div class="stat-label">Security Grading</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">Free</div>
+                <div class="stat-label">Open Source CLI</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2>What we check</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <div class="feature-icon">&#x1f512;</div>
+                    <h3>Authentication Gaps</h3>
+                    <p>Detect MCP servers with missing authentication, plaintext HTTP transport, and publicly exposed endpoints.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">&#x1f511;</div>
+                    <h3>Credential Exposure</h3>
+                    <p>Find hardcoded API keys, tokens, and passwords in your MCP server configurations before attackers do.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">&#x26a0;</div>
+                    <h3>Known CVEs</h3>
+                    <p>Match your MCP packages against known vulnerabilities including CVE-2025-6514 (CVSS 9.6).</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">&#x1f6e1;</div>
+                    <h3>Over-Permissioning</h3>
+                    <p>Identify servers running with elevated privileges, admin flags, or overly broad access patterns.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">&#x1f50c;</div>
+                    <h3>Transport Security</h3>
+                    <p>Flag privilege escalation (sudo), direct shell access, and deprecated transport types.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">&#x2699;</div>
+                    <h3>Config Hygiene</h3>
+                    <p>Catch placeholder values, duplicate servers, empty configs, and complexity risks.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>Get continuous monitoring</h2>
+            <p>Want alerts when your MCP security posture changes? Join the waitlist for MCP Shield Pro — continuous monitoring, compliance reports, and team dashboards.</p>
+            <form class="email-form" id="waitlist-form" onsubmit="submitWaitlist(event)">
+                <input type="email" id="waitlist-email" placeholder="you@company.com" required>
+                <button type="submit" class="btn">Join Waitlist</button>
+            </form>
+            <p id="waitlist-success" style="display:none; color: var(--green); margin-top: 16px;">You're on the list. We'll be in touch.</p>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Built by <a href="https://timolabs.dev">TimoLabs</a> &middot; <a href="https://github.com/ArkYa-AI/mcpshield">Open Source</a> &middot; MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        const API_BASE = window.location.origin;
+
+        async function scanConfig() {
+            const input = document.getElementById('config-input').value.trim();
+            if (!input) return;
+
+            let config;
+            try {
+                config = JSON.parse(input);
+            } catch {
+                alert('Invalid JSON. Please paste a valid MCP configuration.');
+                return;
+            }
+
+            const spinner = document.getElementById('spinner-config');
+            spinner.style.display = 'inline-block';
+
+            try {
+                const res = await fetch(API_BASE + '/api/v1/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config }),
+                });
+                const data = await res.json();
+                renderResults(data);
+            } catch (err) {
+                alert('Scan failed: ' + err.message);
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function scanUrl() {
+            const url = document.getElementById('url-input').value.trim();
+            if (!url) return;
+
+            const spinner = document.getElementById('spinner-url');
+            spinner.style.display = 'inline-block';
+
+            try {
+                const res = await fetch(API_BASE + '/api/v1/scan-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                });
+                const data = await res.json();
+                renderResults(data);
+            } catch (err) {
+                alert('Scan failed: ' + err.message);
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function renderResults(data) {
+            const container = document.getElementById('results');
+            container.style.display = 'block';
+
+            if (!data.results || data.results.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-dim);">No servers found to scan.</p>';
+                return;
+            }
+
+            let html = '';
+            for (const result of data.results) {
+                const gradeClass = 'grade-' + result.grade;
+                html += `
+                    <div class="grade-display">
+                        <div class="grade-badge ${gradeClass}">${result.grade}</div>
+                        <div class="grade-info">
+                            <h3>${result.server_name}</h3>
+                            <p>Score: ${result.score}/100 &middot; ${result.findings.length} finding(s)</p>
+                        </div>
+                    </div>
+                `;
+
+                if (result.findings.length === 0) {
+                    html += '<div class="finding"><p style="color: var(--green);">No security issues found.</p></div>';
+                }
+
+                const severityOrder = ['critical', 'high', 'medium', 'low', 'info'];
+                const sorted = [...result.findings].sort((a, b) =>
+                    severityOrder.indexOf(a.severity) - severityOrder.indexOf(b.severity)
+                );
+
+                for (const f of sorted) {
+                    html += `
+                        <div class="finding">
+                            <div class="finding-header">
+                                <span class="severity-tag sev-${f.severity}">${f.severity}</span>
+                                <span class="finding-title">${f.title}</span>
+                            </div>
+                            <p class="finding-desc">${f.description}</p>
+                            <div class="finding-fix">Fix: ${f.remediation}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = html;
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function submitWaitlist(e) {
+            e.preventDefault();
+            const email = document.getElementById('waitlist-email').value;
+            // TODO: Send to backend/email service
+            console.log('Waitlist signup:', email);
+            document.getElementById('waitlist-form').style.display = 'none';
+            document.getElementById('waitlist-success').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

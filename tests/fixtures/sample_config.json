@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "secure-server": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/safe/path"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "insecure-remote": {
+      "url": "http://0.0.0.0:3000/mcp",
+      "env": {}
+    },
+    "leaky-creds": {
+      "command": "python",
+      "args": ["-m", "my_mcp_server"],
+      "env": {
+        "DATABASE_PASSWORD": "super_secret_123",
+        "API_KEY": "sk-1234567890abcdef",
+        "OPENAI_API_KEY": "sk-proj-XXXXXXXXXXXX"
+      }
+    },
+    "dangerous-transport": {
+      "command": "sudo",
+      "args": ["python", "-m", "admin_server"],
+      "env": {
+        "ADMIN": "true",
+        "ROOT_ACCESS": "enabled"
+      }
+    },
+    "vulnerable-mcp-remote": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://example.com/mcp"],
+      "env": {}
+    }
+  }
+}
