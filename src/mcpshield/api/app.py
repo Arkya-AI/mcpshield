@@ -85,7 +85,7 @@ app.include_router(billing_router)
 # Tracks per-IP scan count in 60-second rolling windows.
 # ---------------------------------------------------------------------------
 
-_RATE_LIMIT_MAX = 10          # max scans per window
+_RATE_LIMIT_MAX = 30          # max scans per window (generous for open use)
 _RATE_LIMIT_WINDOW_SECS = 60  # window size in seconds
 
 # {ip: [(timestamp, count), ...]}  — each entry is a 1-second bucket
@@ -129,6 +129,20 @@ def _client_ip(request: Request) -> str:
 # ---------------------------------------------------------------------------
 
 _scanner = Scanner(checks=get_all_checks())
+
+# ---------------------------------------------------------------------------
+# Usage tracking — simple in-memory counters for monitoring
+# ---------------------------------------------------------------------------
+
+_scan_counts: dict[str, int] = defaultdict(int)  # {YYYY-MM-DD: count}
+_total_scans: int = 0
+
+
+def _track_scan() -> None:
+    global _total_scans
+    _total_scans += 1
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    _scan_counts[today] = _scan_counts.get(today, 0) + 1
 
 
 # ---------------------------------------------------------------------------
@@ -290,6 +304,21 @@ async def health() -> HealthResponse:
     return HealthResponse(status="ok", version=__version__)
 
 
+@app.get(
+    "/api/v1/stats",
+    summary="Usage statistics",
+    tags=["System"],
+)
+async def stats() -> dict:
+    """Return scan usage statistics for monitoring."""
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return {
+        "total_scans": _total_scans,
+        "today": _scan_counts.get(today, 0),
+        "daily_counts": dict(_scan_counts),
+    }
+
+
 @app.post(
     "/api/v1/scan",
     response_model=ScanResponse,
@@ -317,6 +346,7 @@ async def scan_config(body: ScanRequest, request: Request) -> ScanResponse:
             detail=f"Scan failed unexpectedly: {exc}",
         ) from exc
     duration_ms = (time.perf_counter() - t0) * 1000
+    _track_scan()
 
     return _build_response(results, duration_ms)
 
@@ -372,5 +402,6 @@ async def scan_url(body: ScanUrlRequest, request: Request) -> ScanResponse:
             detail=f"Scan failed unexpectedly: {exc}",
         ) from exc
     duration_ms = (time.perf_counter() - t0) * 1000
+    _track_scan()
 
     return _build_response(results, duration_ms)

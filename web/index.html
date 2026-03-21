@@ -399,13 +399,11 @@
     <nav>
         <div class="container">
             <div class="logo">MCP<span>Shield</span></div>
-            <div class="nav-auth">
+            <div>
                 <a href="#scanner">Scanner</a>
                 <a href="#features">Features</a>
-                <a href="https://github.com/ArkYa-AI/mcpshield" target="_blank">GitHub</a>
+                <a href="https://github.com/Arkya-AI/mcpshield" target="_blank">GitHub</a>
                 <a href="/docs" target="_blank">API Docs</a>
-                <a href="/login" class="nav-login" id="nav-login">Login</a>
-                <a href="/dashboard" class="nav-login nav-dashboard" id="nav-dashboard">Dashboard</a>
             </div>
         </div>
     </nav>
@@ -522,19 +520,18 @@
 
     <section class="cta">
         <div class="container">
-            <h2>Get continuous monitoring</h2>
-            <p>Want alerts when your MCP security posture changes? Join the waitlist for MCP Shield Pro — continuous monitoring, compliance reports, and team dashboards.</p>
-            <form class="email-form" id="waitlist-form" onsubmit="submitWaitlist(event)">
-                <input type="email" id="waitlist-email" placeholder="you@company.com" required>
-                <button type="submit" class="btn">Join Waitlist</button>
-            </form>
-            <p id="waitlist-success" style="display:none; color: var(--green); margin-top: 16px;">You're on the list. We'll be in touch.</p>
+            <h2>Open source. Free forever.</h2>
+            <p>MCP Shield is fully open source. Install the CLI, use the web scanner, or self-host. Star us on GitHub to stay updated.</p>
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+                <a href="https://github.com/Arkya-AI/mcpshield" target="_blank" class="btn">Star on GitHub</a>
+                <a href="#scanner" class="btn btn-secondary">Scan Now</a>
+            </div>
         </div>
     </section>
 
     <footer>
         <div class="container">
-            <p>Built by <a href="https://timolabs.dev">TimoLabs</a> &middot; <a href="https://github.com/ArkYa-AI/mcpshield">Open Source</a> &middot; MIT License</p>
+            <p>Built by <a href="https://timolabs.dev">TimoLabs</a> &middot; <a href="https://github.com/Arkya-AI/mcpshield">Open Source</a> &middot; MIT License</p>
         </div>
     </footer>
 
@@ -661,14 +658,7 @@
             document.getElementById('waitlist-success').style.display = 'block';
         }
 
-        // Show Dashboard link instead of Login when user is already authenticated
-        (function() {
-            const token = localStorage.getItem('mcpshield_token');
-            if (token) {
-                document.getElementById('nav-login').style.display = 'none';
-                document.getElementById('nav-dashboard').style.display = 'inline';
-            }
-        })();
+        // Auth nav will be re-enabled in a future release
     </script>
 </body>
 </html>
