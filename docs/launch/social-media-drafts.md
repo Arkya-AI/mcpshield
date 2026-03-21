@@ -14,7 +14,7 @@ It checks for missing auth, hardcoded secrets, insecure transports, over-permiss
 pip install mcpshield
 mcpshield scan ~/path/to/claude_desktop_config.json
 
-Try it free: mcpshield.dev
+Try it free: mcpshield-api-production.up.railway.app
 ```
 
 *(241 characters)*
@@ -30,7 +30,7 @@ Zero. No token, no key, no HTTPS. Fully open to anyone who can reach the port.
 
 We built MCP Shield to change that.
 
-Scan your config before your users find the issue first → mcpshield.dev
+Scan your config before your users find the issue first → mcpshield-api-production.up.railway.app
 ```
 
 *(243 characters)*
@@ -46,7 +46,7 @@ If you use mcp-remote and haven't pinned to ≥0.1.18, MCP Shield will flag it.
 
 mcpshield scan your-config.json
 
-github.com/timolabs/mcpshield
+github.com/Arkya-AI/mcpshield
 ```
 
 *(267 characters)*
@@ -78,9 +78,9 @@ It's an open-source CLI and web scanner that audits your MCP server configuratio
 
 It's free. It stores nothing. It works with Claude Desktop configs out of the box.
 
-**Try it:** mcpshield.dev
+**Try it:** mcpshield-api-production.up.railway.app
 **Install:** `pip install mcpshield`
-**Source:** github.com/timolabs/mcpshield
+**Source:** github.com/Arkya-AI/mcpshield
 
 If you're building with MCP, run a scan before you deploy. It takes fifteen seconds and the findings may surprise you.
 
@@ -96,7 +96,7 @@ We're releasing a report next week. Here's a preview of what we found.
 
 **The headline:** the MCP ecosystem has a security debt problem, and most developers don't know it yet.
 
-When we analyzed a large corpus of MCP server configurations — drawn from public repositories, shared community configs, and anonymized scans through mcpshield.dev — several patterns emerged consistently:
+When we analyzed a large corpus of MCP server configurations — drawn from public repositories, shared community configs, and anonymized scans through mcpshield-api-production.up.railway.app — several patterns emerged consistently:
 
 **Authentication gaps are the norm, not the exception.** Nearly 4 in 10 remote MCP servers had no detectable authentication mechanism. For a protocol that gives AI models access to filesystems, codebases, and APIs, this is a significant exposure.
 
@@ -108,7 +108,7 @@ When we analyzed a large corpus of MCP server configurations — drawn from publ
 
 We'll publish the full numbers, methodology, and breakdown by transport type and server category next week on the TimoLabs blog.
 
-In the meantime, scan your own config at mcpshield.dev — it's free and takes under a minute.
+In the meantime, scan your own config at mcpshield-api-production.up.railway.app — it's free and takes under a minute.
 
 Follow TimoLabs to get the report when it drops.
 
@@ -155,19 +155,19 @@ Usage:
     pip install mcpshield
     mcpshield scan ~/Library/Application\ Support/Claude/claude_desktop_config.json
 
-Or try the web version at mcpshield.dev — paste your config, get results in under a second. Nothing is stored.
+Or try the web version at mcpshield-api-production.up.railway.app — paste your config, get results in under a second. Nothing is stored.
 
 There's also a REST API at /api/v1/scan for CI integration. Exit code 2 on critical findings, 0 on clean.
 
 The CVE database is currently small (3 entries) and we're planning to grow it as the MCP ecosystem matures. Contributions welcome.
 
-Source: github.com/timolabs/mcpshield
-Web scanner: mcpshield.dev
+Source: github.com/Arkya-AI/mcpshield
+Web scanner: mcpshield-api-production.up.railway.app
 
 Happy to answer questions about the check logic, the grading algorithm, or what we found scanning real configs.
 ```
 
 ---
 
-*All posts link to mcpshield.dev and/or github.com/timolabs/mcpshield.*
+*All posts link to mcpshield-api-production.up.railway.app and/or github.com/Arkya-AI/mcpshield.*
 *Tone: technical, credible, developer-to-developer. No hype, no marketing language.*
