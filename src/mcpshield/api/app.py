@@ -266,7 +266,12 @@ def _build_response(results_raw: list[Any], duration_ms: float) -> ScanResponse:
 # ---------------------------------------------------------------------------
 
 
-_WEB_DIR = Path(__file__).resolve().parent.parent.parent.parent / "web"
+# Try project root first (dev), then /app/web (Docker container)
+_WEB_DIR_CANDIDATES = [
+    Path(__file__).resolve().parent.parent.parent.parent / "web",
+    Path("/app/web"),
+]
+_WEB_DIR = next((p for p in _WEB_DIR_CANDIDATES if p.is_dir()), _WEB_DIR_CANDIDATES[0])
 
 @app.get("/", include_in_schema=False)
 async def root():
