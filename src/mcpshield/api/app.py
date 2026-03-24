@@ -131,18 +131,32 @@ def _client_ip(request: Request) -> str:
 _scanner = Scanner(checks=get_all_checks())
 
 # ---------------------------------------------------------------------------
-# Usage tracking — simple in-memory counters for monitoring
+# Usage tracking — persisted to database
 # ---------------------------------------------------------------------------
 
-_scan_counts: dict[str, int] = defaultdict(int)  # {YYYY-MM-DD: count}
-_total_scans: int = 0
+async def _track_scan(findings_count: int = 0) -> None:
+    """Increment today's scan count in the database."""
+    try:
+        from mcpshield.db.engine import get_session_factory
+        from mcpshield.db.models import DailyStats
+        from sqlalchemy import select
 
-
-def _track_scan() -> None:
-    global _total_scans
-    _total_scans += 1
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    _scan_counts[today] = _scan_counts.get(today, 0) + 1
+        today = datetime.now(timezone.utc).date()
+        factory = get_session_factory()
+        async with factory() as session:
+            result = await session.execute(
+                select(DailyStats).where(DailyStats.date == today)
+            )
+            row = result.scalar_one_or_none()
+            if row:
+                row.scan_count += 1
+                row.total_findings += findings_count
+            else:
+                row = DailyStats(date=today, scan_count=1, unique_configs=1, total_findings=findings_count)
+                session.add(row)
+            await session.commit()
+    except Exception:
+        pass  # Never let tracking break a scan
 
 
 # ---------------------------------------------------------------------------
@@ -315,13 +329,44 @@ async def health() -> HealthResponse:
     tags=["System"],
 )
 async def stats() -> dict:
-    """Return scan usage statistics for monitoring."""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    return {
-        "total_scans": _total_scans,
-        "today": _scan_counts.get(today, 0),
-        "daily_counts": dict(_scan_counts),
-    }
+    """Return scan usage statistics from database."""
+    try:
+        from mcpshield.db.engine import get_session_factory
+        from mcpshield.db.models import DailyStats
+        from sqlalchemy import select, func
+
+        today = datetime.now(timezone.utc).date()
+        factory = get_session_factory()
+        async with factory() as session:
+            # Total scans all time
+            total_result = await session.execute(
+                select(func.coalesce(func.sum(DailyStats.scan_count), 0))
+            )
+            total_scans = total_result.scalar()
+
+            # Today's count
+            today_result = await session.execute(
+                select(DailyStats).where(DailyStats.date == today)
+            )
+            today_row = today_result.scalar_one_or_none()
+
+            # Last 30 days
+            all_result = await session.execute(
+                select(DailyStats).order_by(DailyStats.date.desc()).limit(30)
+            )
+            rows = all_result.scalars().all()
+
+        return {
+            "total_scans": total_scans,
+            "today": today_row.scan_count if today_row else 0,
+            "today_findings": today_row.total_findings if today_row else 0,
+            "daily_counts": {
+                str(r.date): {"scans": r.scan_count, "findings": r.total_findings}
+                for r in rows
+            },
+        }
+    except Exception as e:
+        return {"total_scans": 0, "today": 0, "error": str(e)}
 
 
 @app.post(
@@ -351,7 +396,8 @@ async def scan_config(body: ScanRequest, request: Request) -> ScanResponse:
             detail=f"Scan failed unexpectedly: {exc}",
         ) from exc
     duration_ms = (time.perf_counter() - t0) * 1000
-    _track_scan()
+    total_findings = sum(len(r.findings) for r in results)
+    await _track_scan(total_findings)
 
     return _build_response(results, duration_ms)
 
@@ -407,6 +453,7 @@ async def scan_url(body: ScanUrlRequest, request: Request) -> ScanResponse:
             detail=f"Scan failed unexpectedly: {exc}",
         ) from exc
     duration_ms = (time.perf_counter() - t0) * 1000
-    _track_scan()
+    total_findings = sum(len(r.findings) for r in results)
+    await _track_scan(total_findings)
 
     return _build_response(results, duration_ms)

@@ -189,3 +189,37 @@ class ScanRecord(Base):
             f"servers={self.server_count} findings={self.total_findings} "
             f"grade={self.worst_grade!r}>"
         )
+
+
+# ---------------------------------------------------------------------------
+# DailyStats model — persistent usage tracking
+# ---------------------------------------------------------------------------
+
+class DailyStats(Base):
+    """Aggregated daily scan statistics. One row per date."""
+
+    __tablename__ = "daily_stats"
+
+    date: Mapped[date] = mapped_column(
+        Date,
+        primary_key=True,
+        nullable=False,
+    )
+    scan_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    unique_configs: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    total_findings: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    def __repr__(self) -> str:
+        return f"<DailyStats date={self.date} scans={self.scan_count}>"
