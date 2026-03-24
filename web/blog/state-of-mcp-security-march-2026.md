@@ -173,7 +173,7 @@ The findings in this report reflect what we see across publicly available MCP co
 
 ---
 
-**Scan your MCP setup for free at [mcpshield-api-production.up.railway.app](https://mcpshield-api-production.up.railway.app)**
+**Scan your MCP setup for free at [mcpshield.timolabs.dev](https://mcpshield.timolabs.dev)**
 
 **Install the CLI:**
 ```bash

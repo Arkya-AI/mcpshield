@@ -94,7 +94,7 @@ Grades range from **A** (secure) to **F** (critical issues — do not deploy).
 
 Don't want to install anything? Try it online:
 
-**[mcpshield-api-production.up.railway.app](https://mcpshield-api-production.up.railway.app)**
+**[mcpshield.timolabs.dev](https://mcpshield.timolabs.dev)**
 
 Paste your config or drop in a URL. Results in under a second. Nothing is stored.
 
@@ -107,7 +107,7 @@ MCP Shield exposes a JSON API for CI pipelines and integrations.
 **Scan a config file:**
 
 ```bash
-curl -X POST https://mcpshield-api-production.up.railway.app/api/v1/scan \
+curl -X POST https://mcpshield.timolabs.dev/api/v1/scan \
   -H "Content-Type: application/json" \
   -d '{
     "config": {
@@ -125,7 +125,7 @@ curl -X POST https://mcpshield-api-production.up.railway.app/api/v1/scan \
 **Scan a remote URL:**
 
 ```bash
-curl -X POST https://mcpshield-api-production.up.railway.app/api/v1/scan-url \
+curl -X POST https://mcpshield.timolabs.dev/api/v1/scan-url \
   -H "Content-Type: application/json" \
   -d '{"url": "http://my-mcp-server.internal:8080"}'
 ```
@@ -153,7 +153,7 @@ curl -X POST https://mcpshield-api-production.up.railway.app/api/v1/scan-url \
 }
 ```
 
-Interactive API docs: [mcpshield-api-production.up.railway.app/docs](https://mcpshield-api-production.up.railway.app/docs)
+Interactive API docs: [mcpshield.timolabs.dev/docs](https://mcpshield.timolabs.dev/docs)
 
 ---
 
